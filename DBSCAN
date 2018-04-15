@@ -1,0 +1,79 @@
+# -*- coding: utf-8 -*-
+import scipy.io as sio 
+import numpy as np
+import matplotlib.pyplot as plot
+import copy
+from random import choice
+def DBSCAN(data):
+    kernel=set() #核心对象集合
+    count=[]
+    C=[]          #聚类簇
+    for i in np.arange(data.shape[0]):
+      dis=np.sum(((data-data[i])**2),axis=1)
+      tem=(np.argwhere(dis<e)).shape[0]    #寻找领域内样本个数
+      count.append([k[0] for k in (np.argwhere(dis<e)) if k!=i])   #统计邻域内样本
+      if tem-1>=Minpts:
+         kernel.add(i)
+    k=0    #初始化聚类簇数
+    un_visited=set(i for i in np.arange(data.shape[0]))   #初始化未访问样本集合
+    while len(kernel)!=0:
+        old=copy.deepcopy(un_visited)
+        o=choice(list(kernel))            #随机选取一个核心对象
+        Q=[o]                             #初始化队列Q
+        un_visited.remove(o)
+        while len(Q)!=0:
+            q=Q[0]                        
+            Q.remove(q)                   #取出队列首元素
+            if len(count[q])>=Minpts:
+                wait=un_visited & set(count[q])
+                Q.extend(wait)
+                un_visited=un_visited-wait             #删除以访问元素
+        k=k+1
+        C.append(list(old-un_visited))          #生成聚类簇
+        kernel=kernel-(old-un_visited)    #更新剩余核
+    return C
+def huatu(data,K):
+    for i in np.arange(K):
+        plot.scatter(data[C[i],0],data[C[i],1])
+    return 0
+path_2d4c=r'C:\Users\zhangtie\Desktop\python\数据挖掘\DBSCAN\data-密度聚类\data-密度聚类\2d4c.mat'
+data=sio.loadmat(path_2d4c)
+#-------------------smile数据-------------------------------
+e=0.001;    #邻域半径
+Minpts=5    #领域最少样本数
+smile=data['smile']
+smile_data=smile[:,:2]
+smile_label=smile[:,2]
+#plot.scatter(smile_data[:,0],smile_data[:,1])
+C=DBSCAN(smile_data)
+huatu(smile_data,len(C))
+#--------------------moon数据---------------------------------
+e=0.02;    #邻域半径
+Minpts=5    #领域最少样本数
+moon=data['moon']
+moon_data=moon[:,:2]
+moon_label=moon[:,2]
+plot.figure(2)
+#plot.scatter(moon_data[:,0],moon_data[:,1])
+C=DBSCAN(moon_data)
+huatu(moon_data,len(C))
+#--------------------a数据---------------------------------
+e=0.6;    #邻域半径
+Minpts=5    #领域最少样本数
+a=data['a']
+a_data=a[:,:2]
+a_label=a[:,2]
+plot.figure(3)
+#plot.scatter(a_data[:,0],a_data[:,1])
+C=DBSCAN(a_data)
+huatu(a_data,len(C))
+#--------------------b数据---------------------------------
+e=0.5;    #邻域半径
+Minpts=10    #领域最少样本数
+b=data['b']
+b_data=b[:,:2]
+b_label=b[:,2]
+plot.figure(4)
+#plot.scatter(a_data[:,0],a_data[:,1])
+C=DBSCAN(b_data)
+huatu(b_data,len(C))
