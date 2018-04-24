@@ -1,0 +1,84 @@
+# -*- coding: utf-8 -*-
+import numpy as np
+import pandas as pd
+import sklearn as skl
+import pandas as pd
+from collections import Counter
+#-------------------------------------------------------------------------------------
+def creat(r,n):      #生成节点/r为属性名,n为属性取值集合
+    node={}
+    node['name']=r   #节点属性
+    for i in n:
+        node[i]=[]
+    return node
+#-------------------------------------------------------------------------------------
+def choose(M,tem_A):      #选择最优划分属性/M为样本子集,tem_A为剩余属性集
+    tem_count=Counter(M[:,-1])
+    py=tem_count['Yes']/(tem_count['Yes']+tem_count['NO'])
+    pn=tem_count['NO']/(tem_count['Yes']+tem_count['NO'])
+    old_E=-(py*np.log2(py)+pn*np.log2(pn))               #样本集M的信息熵
+    
+    Gain=np.zeros((len(tem_A)))
+    for i in np.arange(len(tem_A)):
+        Gain[i]=cal(tem_A[i],M)-old_E                  #属性tem_A[i]下的信息增益
+    res=np.argmax(Gain)                                #找出最大信息增益属性
+    return tem_A[res]                                  #返回最优化分属性
+#---------------------------------------------------------------------------------------
+def cal(s,tem_M):               #s为待选属性，tem_A为样本子集
+    k=np.argwhere(property==s)
+    k=k[0][0]
+    con=Counter(tem_M[:,k])    #统计属性频次
+    Sum=np.sum(list(con.values()))
+    res=0
+    for x in con:
+        tem_ind=[i[0] for i in np.argwhere(tem_M[:,k]==x)]
+        sub_con=Counter(tem_M[tem_ind,-1])                        
+        sub_sum=np.sum(list(sub_con.values()))
+        tem_res=0
+        for sub_x in sub_con:                              #属性各取值下的信息熵
+            tem_res+=-(sub_con[sub_x]/sub_sum)*np.log2(sub_con[sub_x]/sub_sum)
+        res+=(con[x]/Sum)*tem_res          #属性总信息熵
+    return res
+#---------------------------------------------------------------------------------------
+def Creat_Tree(new_data,new_property):
+    con=Counter(new_data[:,-1])
+    lei=list(con.keys())
+    con=list(con)
+    if len(lei)==1:
+        return creat(lei[0],{})                          #如果D中样本全属于同一类别
+    flag=1
+    for i in new_property:                               #判断样本在property上取值相同
+        k=np.argwhere(property==i)[0][0]
+        flag=flag & (len(set(new_data[:,k]))==1)         
+    if ((len(new_property)==0)|(flag==1)):               #如果属性集为空或样本在property上取值相同
+        return creat(lei[np.argmax(con)],{})
+    best_pro=choose(new_data,new_property)               #选择最优划分属性
+    k=np.argwhere(property==best_pro)[0][0]
+    tem_C=Counter(data[:,k])
+    tree=creat(best_pro,set(tem_C.keys()))
+    for x in tem_C.keys():                               #为属性每个可能取值生成一个分支
+        tem_ind=[i[0] for i in np.argwhere(new_data[:,k]==x)]
+        Dv=new_data[tem_ind,:]
+        if len(Dv)==0:
+            tree[x]=creat(lei[np.argmax(con)],{})        #如果Dv为空，则分支节点标记为叶子节点，类别标记为new_data中样本最多的类
+        else:
+            tem_A=list(new_property)                     
+            tem_A.remove(best_pro)
+            tree[x]=Creat_Tree(Dv,np.array(tem_A))       #以Creat_Tree(Dv,np.array(tem_A))为分支节点
+    return tree
+#-----------------------------------------------------------------------------------------
+f=open(r'C:\Users\zhangtie\Desktop\python\数据挖掘\决策树\数据.txt')
+Line=f.readlines()
+data=[]
+for L in Line:
+    data.append(L.split())
+table=np.array(data)
+property=table[0][1:-1]
+data=table[1:,1:]
+'''
+count=Counter(data[:,-1])
+print(len(count))
+count.values()
+'''
+final=Creat_Tree(data,property)
+
