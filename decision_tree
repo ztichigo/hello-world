@@ -67,6 +67,15 @@ def Creat_Tree(new_data,new_property):
             tree[x]=Creat_Tree(Dv,np.array(tem_A))       #以Creat_Tree(Dv,np.array(tem_A))为分支节点
     return tree
 #-----------------------------------------------------------------------------------------
+def test(X):
+    x=final['name']
+    tem_node=final
+    while x in property:
+        k=np.argwhere(property==x)[0][0]
+        tem_node=tem_node[X[k]]
+        x=tem_node['name']
+    return x
+#-------------------------------------------------------------------------------------------
 f=open(r'C:\Users\zhangtie\Desktop\python\数据挖掘\决策树\数据.txt')
 Line=f.readlines()
 data=[]
@@ -81,4 +90,6 @@ print(len(count))
 count.values()
 '''
 final=Creat_Tree(data,property)
-
+#输出各训练样本的测试值
+for i in np.arange(len(data)):
+  print(test(data[i,:]))
